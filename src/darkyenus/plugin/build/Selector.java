@@ -7,7 +7,6 @@ import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import static darkyenus.plugin.build.DarkyenusBuild.debug;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -92,16 +91,12 @@ public abstract class Selector {
                 throw new SyntaxException("Unrecognized selector "+selectorName);
         }
 
-        debug("Selector: "+selectorFunction);
-
         final int[] dimensions;
         final int[] offsets;
 
         {
             final String maybeDimensions = tokenizer.peek();
-            debug("Maybe dimensions: "+maybeDimensions);
             dimensions = getDimensions(maybeDimensions);
-            debug("Dimensions: "+ Arrays.toString(dimensions));
         }
 
         if(dimensions != null){
@@ -125,7 +120,6 @@ public abstract class Selector {
         } else {
             offsets = null;
         }
-        debug("Offsets: "+ Arrays.toString(offsets));
 
         final Selector selector = selectorFunction.apply(dimensions);
         if(offsets != null){

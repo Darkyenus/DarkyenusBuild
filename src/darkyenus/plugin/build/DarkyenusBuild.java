@@ -28,7 +28,6 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
     public static final String OFFICIAL_TOOL_NAME = ChatColor.GOLD + "Building Pickaxe";
     public static final String OFFICIAL_LORE_PREFIX = ChatColor.GRAY + "Tool #";
 
-    private static boolean DEBUG = false;
     //-----------------------Plugin stuff
 
     @Override
@@ -133,14 +132,6 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
 
     private void sendHelpTopic(CommandSender sender, String topic){
         switch (topic.toLowerCase()) {
-            case "debug":
-                DEBUG = !DEBUG;
-                if(DEBUG){
-                    sender.sendMessage("Debug enabled");
-                } else {
-                    sender.sendMessage("Debug disabled");
-                }
-                break;
             case "about":
                 sender.sendMessage(ChatColor.GOLD.toString() + ChatColor.BOLD + "Darkyenus Build " + getDescription().getVersion());
                 sender.sendMessage(ChatColor.BLUE + "Created by " + ChatColor.GOLD + ChatColor.BOLD + "Darkyen");
@@ -249,11 +240,5 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
             }
         }
         return null;
-    }
-
-    public static void debug(CharSequence log){
-        if(DEBUG) {
-            System.out.println("DarkyenusBuild: "+log);
-        }
     }
 }
