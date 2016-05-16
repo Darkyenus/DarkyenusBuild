@@ -132,13 +132,7 @@ public abstract class Worker {
         }
 
         void changeBiome(Block block, Biome biome) {
-            final Biome existingBiome = block.getBiome();
-            if (existingBiome == biome) {
-                return;
-            }
-
-            change.snapshotBlock(block);
-            block.setBiome(biome);
+            change.changeBiome(block.getX(), block.getZ(), biome);
         }
     }
 }

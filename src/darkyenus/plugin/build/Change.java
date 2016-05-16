@@ -1,13 +1,12 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package darkyenus.plugin.build;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
+
+import gnu.trove.map.TLongObjectMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -17,14 +16,54 @@ import org.bukkit.block.BlockState;
  * @author Darkyen
  */
 public class Change {
-    private HashSet<Location> snapshottedBlocks = new HashSet<Location>();
-    private ArrayList<BlockSnapshot> before = new ArrayList<BlockSnapshot>();
-    
-    public int changeBack(){
-        for(BlockSnapshot state:before){
+
+    private final Set<Location> changedBlockLocations = new HashSet<>();
+    private final List<BlockSnapshot> before = new ArrayList<>();
+
+    private final World world;
+    private final TLongObjectMap<Biome> originalBiomes = new TLongObjectHashMap<>();
+
+    public Change(World world) {
+        this.world = world;
+    }
+
+    private static long biomeLocationKey(int x, int z){
+        return ((long)x << 32) | (z & 0xFFFF_FFFFL);
+    }
+
+    private static int biomeLocationKeyX(long key){
+        return (int) (key >> 32);
+    }
+
+    private static int biomeLocationKeyZ(long key){
+        return (int)(key & 0xFFFF_FFFFL);
+    }
+
+    public void changeBiome(int x, int z, Biome biome) {
+        final Biome currentBiome = world.getBiome(x, z);
+        if(currentBiome != biome){
+            final long key = biomeLocationKey(x, z);
+            if(!originalBiomes.containsKey(key)){
+                originalBiomes.put(key, currentBiome);
+            }
+            world.setBiome(x, z, biome);
+        }
+    }
+
+    public int revert(){
+        final int totalChanges = originalBiomes.size() + before.size();
+
+        originalBiomes.forEachEntry((key, biome) -> {
+            world.setBiome(biomeLocationKeyX(key), biomeLocationKeyZ(key), biome);
+            return true;
+        });
+        originalBiomes.clear();
+
+        for(BlockSnapshot state:before) {
             state.revert();
         }
-        return before.size();
+
+        return totalChanges;
     }
     
     public int getSize(){
@@ -32,24 +71,22 @@ public class Change {
     }
     
     public void snapshotBlock(Block block){
-        if(!snapshottedBlocks.contains(block.getLocation())){
+        if(!changedBlockLocations.contains(block.getLocation())){
             before.add(new BlockSnapshot(block));
-            snapshottedBlocks.add(block.getLocation());
+            changedBlockLocations.add(block.getLocation());
         }
     }
     
     private class BlockSnapshot{
-        Location location;
-        Material material;
-        byte data;
-        Biome biome;
-        BlockState state;//This may be null
+        private final Location location;
+        private final Material material;
+        private final byte data;
+        private final BlockState state;//This may be null
         
         public BlockSnapshot(Block block){
             location = block.getLocation();
             material = block.getType();
             data = block.getData();
-            biome = block.getBiome();
             state = block.getState();
         }
         
@@ -57,9 +94,8 @@ public class Change {
             final Block block = location.getBlock();
             block.setType(material, false);
             block.setData(data, false);
-            block.setBiome(biome);
             if(state != null) {
-                state.update(true);
+                state.update(true, false);
             }
         }
     }

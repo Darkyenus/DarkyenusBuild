@@ -179,7 +179,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                         if (nextIndex < 0) {
                             event.getPlayer().sendMessage(ChatColor.RED + "Nothing to undo");
                         } else {
-                            int changedBlocks = getChanges(event.getPlayer()).remove(nextIndex).changeBack();
+                            int changedBlocks = getChanges(event.getPlayer()).remove(nextIndex).revert();
                             event.getPlayer().sendMessage(ChatColor.GREEN.toString() + changedBlocks + " blocks changed back");
                         }
                     }

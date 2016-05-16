@@ -48,6 +48,7 @@ public class Tool {
                 }
                 break;
                 case "set":
+                case "to":
                 {
                     activeActionPack.add(Worker.createSimpleWorker(from));
                 }
@@ -55,6 +56,8 @@ public class Tool {
                 case "do":
                 {
                     //TODO Custom workers
+                    //noinspection ConstantIfStatement,ConstantConditions
+                    if(true) throw new SyntaxException("Invalid keyword: do");
                 }
                 break;
                 case ";":
@@ -101,7 +104,7 @@ public class Tool {
     }
 
     public Change processClick(Player player, BlockFace blockFace, Location at) {
-        Change change = new Change();
+        Change change = new Change(player.getWorld());
         for (ActionPack actionPack : actionPacks) {
             actionPack.processClick(player, blockFace, change, at);
         }
