@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import static darkyenus.plugin.build.DarkyenusBuild.debug;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -32,7 +33,12 @@ public abstract class Selector {
 
     public void sendInfo(CommandSender sender) {
         sendInfoRaw(sender);
-        sender.sendMessage(ChatColor.BLUE + "   Offsets: " + ChatColor.WHITE + Arrays.toString(offsets));
+        for (int offset : offsets) {
+            if(offset != 0){
+                sender.sendMessage(ChatColor.BLUE + "   Offsets: " + ChatColor.WHITE + Arrays.toString(offsets));
+                break;
+            }
+        }
     }
 
     abstract void sendInfoRaw(CommandSender sender);
@@ -86,9 +92,17 @@ public abstract class Selector {
                 throw new SyntaxException("Unrecognized selector "+selectorName);
         }
 
-        final String maybeDimensions = tokenizer.peek();
-        final int[] dimensions = getDimensions(maybeDimensions);
+        debug("Selector: "+selectorFunction);
+
+        final int[] dimensions;
         final int[] offsets;
+
+        {
+            final String maybeDimensions = tokenizer.peek();
+            debug("Maybe dimensions: "+maybeDimensions);
+            dimensions = getDimensions(maybeDimensions);
+            debug("Dimensions: "+ Arrays.toString(dimensions));
+        }
 
         if(dimensions != null){
             tokenizer.next();//Take peeked dimensions
@@ -96,10 +110,10 @@ public abstract class Selector {
             String maybeOffsets = tokenizer.peek();
             if(maybeOffsets.startsWith("+")){
                 tokenizer.next();//Take peeked offsets
-                offsets = getDimensions(getDimensions(maybeDimensions.substring(1)), 3, 0);
-            } else if(maybeDimensions.startsWith("-")){
+                offsets = getDimensions(getDimensions(maybeOffsets.substring(1)), 3, 0);
+            } else if(maybeOffsets.startsWith("-")){
                 tokenizer.next();//Take peeked offsets
-                offsets = getDimensions(getDimensions(maybeDimensions.substring(1)), 3, 0);
+                offsets = getDimensions(getDimensions(maybeOffsets.substring(1)), 3, 0);
                 if(offsets != null){
                     for (int i = 0; i < offsets.length; i++) {
                         offsets[i] = -offsets[i];
@@ -111,6 +125,7 @@ public abstract class Selector {
         } else {
             offsets = null;
         }
+        debug("Offsets: "+ Arrays.toString(offsets));
 
         final Selector selector = selectorFunction.apply(dimensions);
         if(offsets != null){
