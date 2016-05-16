@@ -23,7 +23,6 @@ public class Tool {
 
     private final ArrayList<ActionPack> actionPacks = new ArrayList<>();
     private int id;
-    private String creator;
 
     public Tool(Tokenizer from) {
         if (!from.hasNext()) {
@@ -125,22 +124,7 @@ public class Tool {
         this.id = id;
     }
 
-    /**
-     * @return the creator
-     */
-    public String getCreator() {
-        return creator;
-    }
-
-    /**
-     * @param creator the creator to set
-     */
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
     public void sendInfo(CommandSender sender) {
-        sender.sendMessage(ChatColor.BLUE + "Creator: " + ChatColor.WHITE + creator);
         for (int i = 0; i < actionPacks.size(); i++) {
             sender.sendMessage(ChatColor.BLUE + " ActionPack " + ChatColor.WHITE + i);
             actionPacks.get(i).sendInfo(sender);

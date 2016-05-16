@@ -67,23 +67,23 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
             Player player = (Player) sender;
             if (command.getName().equals("build")) {
                 if (args.length != 0) {
-                    Tool inHand = getToolAssociatedWithItem(player.getItemInHand());
-                    if ((player.getItemInHand() == null || player.getItemInHand().getTypeId() == 0 || player.getItemInHand().getAmount() == 0) || inHand != null) {
+                    final Tool inHand = getToolInHandOfPlayer(player);
+
+                    if (inHand != null) {
                         try {
-                            if (inHand != null) {
-                                if (inHand.getCreator().equals(player.getName())) {
-                                    Tool newTool = new Tool(new Tokenizer(args));
-                                    newTool.setId(inHand.getId());
-                                    newTool.setCreator(inHand.getCreator());
-                                    tools.put(inHand.getId(), newTool);
-                                    player.sendMessage(ChatColor.GREEN + "Tool modified!");
-                                } else {
-                                    player.sendMessage(ChatColor.RED + "You cannot modify someone else's tool.");
-                                }
-                            } else {
+                            Tool newTool = new Tool(new Tokenizer(args));
+                            newTool.setId(inHand.getId());
+                            tools.put(inHand.getId(), newTool);
+                            player.sendMessage(ChatColor.GREEN + "Tool modified!");
+                            newTool.sendInfo(player);
+                        } catch (ParsingUtils.SyntaxException e) {
+                            player.sendMessage(ChatColor.RED + "Syntax error: " + ChatColor.WHITE + ChatColor.ITALIC + e.getMessage());
+                        }
+                    } else {
+                        if(player.getInventory().getItemInMainHand().getType() == Material.AIR) {
+                            try {
                                 Tool newTool = new Tool(new Tokenizer(args));
                                 newTool.setId(nextToolID);
-                                newTool.setCreator(player.getName());
                                 tools.put(nextToolID, newTool);
                                 ItemStack toolItemStack = new ItemStack(Material.GOLD_PICKAXE, 1);
                                 ItemMeta meta = toolItemStack.getItemMeta();
@@ -93,38 +93,53 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                                 nextToolID++;
                                 player.getInventory().setItem(player.getInventory().getHeldItemSlot(), toolItemStack);
                                 player.sendMessage(ChatColor.GREEN + "Tool created!");
+                                newTool.sendInfo(player);
+                            } catch (ParsingUtils.SyntaxException e) {
+                                player.sendMessage(ChatColor.RED + "Syntax error: " + ChatColor.WHITE + ChatColor.ITALIC + e.getMessage());
                             }
-                        } catch (ParsingUtils.SyntaxException e) {
-                            player.sendMessage(ChatColor.RED + "Syntax error: " + ChatColor.WHITE + ChatColor.ITALIC + e.getMessage());
+                        } else {
+                            player.sendMessage(ChatColor.RED + "Empty your hands first.");
                         }
-                    } else {
-                        player.sendMessage(ChatColor.RED + "Empty your hands first.");
                     }
                 } else {
-                    player.sendMessage("TODO STUB (This is a help, in case you didn't notice)");
+                    player.sendMessage(ChatColor.BLUE+"Command for creating and modifying existing tools");
+                    player.sendMessage("Use "+ChatColor.ITALIC+"/darkyenusbuild help"+ChatColor.RESET+" for more info");
                 }
                 return true;
             } else if (command.getName().equals("darkyenusbuild")) {
-                player.sendMessage("TODO STUB (Darkyenus Build is curretly being created by Darkyen)");
+                if(args.length == 0){
+                    sendHelpTopic(sender, "");
+                } else {
+                    sendHelpTopic(sender, args[1]);
+                }
                 return true;
             } else if (command.getName().equals("tool")) {
-                Tool inHand = getToolAssociatedWithItem(player.getItemInHand());
+                Tool inHand = getToolInHandOfPlayer(player);
                 if(inHand == null){
                     player.sendMessage(ChatColor.RED+"You are not holding any tool.");
                 }else{
-                    if (args.length == 0) {
-                        inHand.sendInfo(player);
-                    }else{
-                        player.sendMessage("TODO STUB (Name change not yet implemented)");
-                    }
+                    inHand.sendInfo(player);
                 }
                 return true;
             }
         } else {
-            sender.sendMessage(ChatColor.RED + "Sorry, in game use only.");
+            sender.sendMessage(ChatColor.RED + "In game use only");
             return true;
         }
         return false;
+    }
+
+    private void sendHelpTopic(CommandSender sender, String topic){
+        switch (topic) {
+            case "about":
+                sender.sendMessage(ChatColor.GOLD.toString() + ChatColor.BOLD + "Darkyenus Build " + getDescription().getVersion());
+                sender.sendMessage(ChatColor.BLUE + "Created by " + ChatColor.GOLD + ChatColor.BOLD + "Darkyen");
+                sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "   (c) 2013 - 2016 darkyen@me.com");
+                break;
+            default:
+                sender.sendMessage(ChatColor.BLUE+"Available help topics:");
+                sender.sendMessage(ChatColor.ITALIC+"about");
+        }
     }
 
     @EventHandler
@@ -188,7 +203,10 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
         }
     }
 
-    @SuppressWarnings("CallToThreadDumpStack")
+    public Tool getToolInHandOfPlayer(Player player) {
+        return getToolAssociatedWithItem(player.getInventory().getItemInMainHand());
+    }
+
     public Tool getToolAssociatedWithItem(ItemStack item) {
         if (item != null && item.getType() == Material.GOLD_PICKAXE) {
             if (item.hasItemMeta()) {
