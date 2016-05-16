@@ -25,8 +25,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class DarkyenusBuild extends JavaPlugin implements Listener {
 
-    public static final String OFFICIAL_TOOL_NAME = ChatColor.GOLD + "Building Pickaxe";
-    public static final String OFFICIAL_LORE_PREFIX = ChatColor.GRAY + "Tool #";
+    public static final String BUILD_TOOL_NAME = ChatColor.GOLD + "Building Pickaxe";
+    public static final String BUILD_TOOL_LORE_PREFIX = ChatColor.GRAY + "Tool #";
 
     //-----------------------Plugin stuff
 
@@ -88,8 +88,8 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                                 tools.put(nextToolID, newTool);
                                 ItemStack toolItemStack = new ItemStack(Material.GOLD_PICKAXE, 1);
                                 ItemMeta meta = toolItemStack.getItemMeta();
-                                meta.setDisplayName(OFFICIAL_TOOL_NAME);
-                                meta.setLore(Collections.singletonList(OFFICIAL_LORE_PREFIX + nextToolID));
+                                meta.setDisplayName(BUILD_TOOL_NAME);
+                                meta.setLore(Collections.singletonList(BUILD_TOOL_LORE_PREFIX + nextToolID));
                                 toolItemStack.setItemMeta(meta);
                                 nextToolID++;
                                 player.getInventory().setItem(player.getInventory().getHeldItemSlot(), toolItemStack);
@@ -259,12 +259,12 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
     public Tool getToolAssociatedWithItem(ItemStack item) {
         if (item != null && item.getType() == Material.GOLD_PICKAXE) {
             if (item.hasItemMeta()) {
-                if (OFFICIAL_TOOL_NAME.equals(item.getItemMeta().getDisplayName())) {
+                if (BUILD_TOOL_NAME.equals(item.getItemMeta().getDisplayName())) {
                     List<String> lore = item.getItemMeta().getLore();
                     if (lore.size() == 1) {
                         String loreText = lore.get(0);
-                        if (loreText.startsWith(OFFICIAL_LORE_PREFIX)) {
-                            String loreSuffix = loreText.substring(OFFICIAL_LORE_PREFIX.length());
+                        if (loreText.startsWith(BUILD_TOOL_LORE_PREFIX)) {
+                            String loreSuffix = loreText.substring(BUILD_TOOL_LORE_PREFIX.length());
                             try {
                                 int pickID = Integer.parseInt(loreSuffix);
                                 return tools.get(pickID);
