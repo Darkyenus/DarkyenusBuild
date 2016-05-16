@@ -4,17 +4,17 @@ main: darkyenus.plugin.build.DarkyenusBuild
 authors: [Darkyen]
 commands:
   build:
-    description: Create new build tool.
+    description: Create new build tool
     aliases: [b, create, bs, buildsettings]
+    permission: darkyenusbuild
+  tool:
+    description: View settings of your tool
+    usage: /tool [New Name]
     permission: darkyenusbuild
   darkyenusbuild:
     aliases: [dbld, dbuild]
     usage: /dbld [selectors/filters/actions/...]
     description: Darkyenus Build plugin info
-  tool:
-    description: View settings of your tool or change name
-    usage: /tool [New Name]
-    permission: darkyenusbuild
 permissions:
   darkyenusbuild:
     description: Allows you to use DarkyenusBuild

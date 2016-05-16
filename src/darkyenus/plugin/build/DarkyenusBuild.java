@@ -137,21 +137,57 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.BLUE + "Created by " + ChatColor.GOLD + ChatColor.BOLD + "Darkyen");
                 sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "   (c) 2013 - 2016 darkyen@me.com");
                 break;
+            case "quickstart":
+                sender.sendMessage(ChatColor.AQUA+"/build in box 3x3x3 to cobblestone");
+                sender.sendMessage(ChatColor.BLUE+"- This command will create a tool that will build 3x3x3 cobblestone boxes where you tell it to. Left click to build, right click to undo.");
+                sender.sendMessage(ChatColor.BLUE+"- For more shapes, see /dbld selectors");
+                sender.sendMessage(ChatColor.BLUE+"- For more actions, see /dbld workers");
+                sender.sendMessage(ChatColor.BLUE+"- For more advanced tools, see /dbld spec");
+                break;
             case "selectors":
-                sender.sendMessage(ChatColor.UNDERLINE+"cube "+ChatColor.RESET+"width"+ChatColor.ITALIC+"X"+ChatColor.RESET+"height"+ChatColor.ITALIC+"X"+ChatColor.RESET+"depth"+ChatColor.AQUA+" 3D cube centered on cursor");
-                sender.sendMessage(ChatColor.UNDERLINE+"rectangle "+ChatColor.RESET+"width"+ChatColor.ITALIC+"X"+ChatColor.RESET+"height"+ChatColor.AQUA+" 2D cube centered on cursor, oriented on target face");
-                sender.sendMessage(ChatColor.UNDERLINE+"square "+ChatColor.RESET+"width/height"+ChatColor.AQUA+" like rectangle, with equal side sizes");
-                sender.sendMessage(ChatColor.UNDERLINE+"sphere "+ChatColor.RESET+"radius"+ChatColor.AQUA+" 3D sphere centered on cursor");
-                sender.sendMessage(ChatColor.UNDERLINE+"disc "+ChatColor.RESET+"radius"+ChatColor.AQUA+" 2D disc centered on cursor, oriented on target face");
-                sender.sendMessage(ChatColor.UNDERLINE+"column "+ChatColor.RESET+"length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face (negative length supported)");
-                sender.sendMessage(ChatColor.UNDERLINE+"floor "+ChatColor.RESET+"length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face but always horizontal (negative length supported)");
-                sender.sendMessage(ChatColor.UNDERLINE+"wall "+ChatColor.RESET+"length"+ChatColor.AQUA+" 1D column from cursor, always up (negative length supported)");
-                sender.sendMessage(ChatColor.UNDERLINE+"chunk "+ChatColor.AQUA+" whole chunk, from bottom to top of the world");
-                sender.sendMessage(ChatColor.UNDERLINE+"chunklayer "+ChatColor.RESET+"height"+ChatColor.AQUA+" slice of targeted chunk, from target up (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"cube"+ChatColor.RESET+" width"+ChatColor.ITALIC+"x"+ChatColor.RESET+"height"+ChatColor.ITALIC+"x"+ChatColor.RESET+"depth"+ChatColor.AQUA+" 3D cube centered on cursor");
+                sender.sendMessage(ChatColor.UNDERLINE+"rectangle"+ChatColor.RESET+" width"+ChatColor.ITALIC+"x"+ChatColor.RESET+"height"+ChatColor.AQUA+" 2D cube centered on cursor, oriented on target face");
+                sender.sendMessage(ChatColor.UNDERLINE+"square"+ChatColor.RESET+" width/height"+ChatColor.AQUA+" like rectangle, with equal side sizes");
+                sender.sendMessage(ChatColor.UNDERLINE+"sphere"+ChatColor.RESET+" radius"+ChatColor.AQUA+" 3D sphere centered on cursor");
+                sender.sendMessage(ChatColor.UNDERLINE+"disc"+ChatColor.RESET+" radius"+ChatColor.AQUA+" 2D disc centered on cursor, oriented on target face");
+                sender.sendMessage(ChatColor.UNDERLINE+"column"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"floor"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face but always horizontal (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"wall"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, always up (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"chunk"+ChatColor.AQUA+" whole chunk, from bottom to top of the world");
+                sender.sendMessage(ChatColor.UNDERLINE+"chunklayer"+ChatColor.RESET+" height"+ChatColor.AQUA+" slice of targeted chunk, from target up (negative length supported)");
+                break;
+            case "workers":
+                sender.sendMessage(ChatColor.AQUA+"Basic worker: [block/biome] <material or biome name>");
+                sender.sendMessage(ChatColor.BLUE+"Basic workers modify blocks to specified material or biome. Optional \"block\" or \"biome\" (space separated) may be specified before the name to resolve ambiguity. By default, only blocks are selected.");
+                sender.sendMessage(ChatColor.BLUE+"Materials may have ':DATA' appended to also modify data. For example \"wool:11\" for blue wool.");
+                sender.sendMessage(ChatColor.BLUE+"When modifying biomes, note that the change will be visible only after chunk reload.");
+                break;
+            case "specification":
+            case "spec":
+                sender.sendMessage(ChatColor.AQUA+"/build <action packs>");
+                sender.sendMessage(ChatColor.AQUA+"<action pack> = IN [selector]+ WHERE [filter]+ SET [worker]+");
+                sender.sendMessage(ChatColor.BLUE+"A tool may have one or more action packs, which is a union of all selectors, filtered by specified filters and acted on by workers. Action pack elements may be specified in any order. Action packs themselves are separated by a ; (which must have spaces on both sides). Each selector must be prefixed with IN, each filter with WHERE and each (basic) worker with SET or TO.");
+                sender.sendMessage(ChatColor.BLUE+"See [commands]");
+                break;
+            case "commands":
+                sender.sendMessage(ChatColor.AQUA+"/build ...");
+                sender.sendMessage(ChatColor.BLUE+"Will create new tool or change the one already in your (main) hand. See [spec].");
+                sender.sendMessage(ChatColor.AQUA+"/tool ...");
+                sender.sendMessage(ChatColor.BLUE+"Will print info about the tool in your hand");
+                break;
+            case "filters":
+                sender.sendMessage(ChatColor.AQUA+"Basic unit filter: [block/biome] <material or biome name>");
+                sender.sendMessage(ChatColor.BLUE+"Filters are simple expressions build from blocks looking not unlike basic workers. Selected block only passes the test when all filters pass it through, which, in case of basic filter, means that the existing block is the same as specified. Data value is checked only when explicitly specified. Filters may be chained into expressions, see [filter-expressions].");
+                break;
+            case "filter-expressions":
+                sender.sendMessage(ChatColor.AQUA+"[NOT] FILTER [[AND/OR/NOR/XOR] [NOT] FILTER]+");
+                sender.sendMessage(ChatColor.BLUE+"Filter expressions are a powerful way to specify which blocks should be modified. For this, boolean operators are used. They are evaluated in line, with no order of preference, except for NOT, which always binds ONLY to the expression right after it.");
+                sender.sendMessage(ChatColor.AQUA+"Ex: cobblestone or not biome ocean");
+                sender.sendMessage(ChatColor.BLUE+"Will modify cobblestone blocks in ocean biome and all blocks elsewhere");
                 break;
             default:
                 sender.sendMessage(ChatColor.BLUE+"Available help topics:");
-                sender.sendMessage(ChatColor.ITALIC+"selectors, about");
+                sender.sendMessage(ChatColor.ITALIC+"quickstart, commands, selectors, workers, specification, filters, filter-expressions, about");
         }
     }
 
