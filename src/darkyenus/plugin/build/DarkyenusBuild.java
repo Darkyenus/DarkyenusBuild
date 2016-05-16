@@ -136,9 +136,21 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.BLUE + "Created by " + ChatColor.GOLD + ChatColor.BOLD + "Darkyen");
                 sender.sendMessage(ChatColor.BLUE.toString() + ChatColor.ITALIC + "   (c) 2013 - 2016 darkyen@me.com");
                 break;
+            case "selectors":
+                sender.sendMessage(ChatColor.UNDERLINE+"cube "+ChatColor.RESET+"width"+ChatColor.ITALIC+"X"+ChatColor.RESET+"height"+ChatColor.ITALIC+"X"+ChatColor.RESET+"depth"+ChatColor.AQUA+" 3D cube centered on cursor");
+                sender.sendMessage(ChatColor.UNDERLINE+"rectangle "+ChatColor.RESET+"width"+ChatColor.ITALIC+"X"+ChatColor.RESET+"height"+ChatColor.AQUA+" 2D cube centered on cursor, oriented on target face");
+                sender.sendMessage(ChatColor.UNDERLINE+"square "+ChatColor.RESET+"width/height"+ChatColor.AQUA+" like rectangle, with equal side sizes");
+                sender.sendMessage(ChatColor.UNDERLINE+"sphere "+ChatColor.RESET+"radius"+ChatColor.AQUA+" 3D sphere centered on cursor");
+                sender.sendMessage(ChatColor.UNDERLINE+"disc "+ChatColor.RESET+"radius"+ChatColor.AQUA+" 2D disc centered on cursor, oriented on target face");
+                sender.sendMessage(ChatColor.UNDERLINE+"column "+ChatColor.RESET+"length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"floor "+ChatColor.RESET+"length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face but always horizontal (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"wall "+ChatColor.RESET+"length"+ChatColor.AQUA+" 1D column from cursor, always up (negative length supported)");
+                sender.sendMessage(ChatColor.UNDERLINE+"chunk "+ChatColor.AQUA+" whole chunk, from bottom to top of the world");
+                sender.sendMessage(ChatColor.UNDERLINE+"chunklayer "+ChatColor.RESET+"height"+ChatColor.AQUA+" slice of targeted chunk, from target up (negative length supported)");
+                break;
             default:
                 sender.sendMessage(ChatColor.BLUE+"Available help topics:");
-                sender.sendMessage(ChatColor.ITALIC+"about");
+                sender.sendMessage(ChatColor.ITALIC+"selectors, about");
         }
     }
 

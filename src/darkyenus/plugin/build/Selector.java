@@ -64,6 +64,7 @@ public abstract class Selector {
                 selectorFunction = Selector::createSphereSelector;
                 break;
             case "disk":
+            case "disc":
                 selectorFunction = Selector::createDiskSelector;
                 break;
             case "column":
@@ -86,7 +87,7 @@ public abstract class Selector {
         }
 
         final String maybeDimensions = tokenizer.peek();
-        final int[] dimensions = getDimensions(maybeDimensions, true);
+        final int[] dimensions = getDimensions(maybeDimensions);
         final int[] offsets;
 
         if(dimensions != null){
@@ -95,10 +96,10 @@ public abstract class Selector {
             String maybeOffsets = tokenizer.peek();
             if(maybeOffsets.startsWith("+")){
                 tokenizer.next();//Take peeked offsets
-                offsets = getDimensions(getDimensions(maybeDimensions.substring(1), false), 3, 0);
+                offsets = getDimensions(getDimensions(maybeDimensions.substring(1)), 3, 0);
             } else if(maybeDimensions.startsWith("-")){
                 tokenizer.next();//Take peeked offsets
-                offsets = getDimensions(getDimensions(maybeDimensions.substring(1), false), 3, 0);
+                offsets = getDimensions(getDimensions(maybeDimensions.substring(1)), 3, 0);
                 if(offsets != null){
                     for (int i = 0; i < offsets.length; i++) {
                         offsets[i] = -offsets[i];
@@ -121,7 +122,7 @@ public abstract class Selector {
 
     //<editor-fold defaultstate="collapsed" desc="Utility Methods">
 
-    private static int[] getDimensions(String text, boolean positiveNumber) {
+    private static int[] getDimensions(String text) {
         int dimensionCount = 1;
         for (int i = 0; i < text.length(); i++) {
             if(text.charAt(i) == 'x') dimensionCount++;
@@ -162,14 +163,6 @@ public abstract class Selector {
         }
         dimensions[dimIndex] = dimSize;
 
-        if(positiveNumber){
-            for (int i = 0; i < dimensionCount; i++) {
-                if(dimensions[i] < 1){
-                    dimensions[i] = 1;
-                }
-            }
-        }
-
         return dimensions;
     }
 
@@ -192,6 +185,11 @@ public abstract class Selector {
         return createOneBlockSelector();
     }
 
+    private static int sign(int of){
+        if(of < 0)return -1;
+        else return 1;
+    }
+
     private static Selector createOneBlockSelector() {
         return new Selector() {
             @Override
@@ -211,8 +209,9 @@ public abstract class Selector {
         return new Selector() {
             @Override
             public void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
-                for (int i = 0; i < height; i++) {
-                    aggregate.add(clickX + blockFace.getModX() * i, clickY + blockFace.getModY() * i, clickZ + blockFace.getModZ() * i);
+                final int sign = sign(height);
+                for (int i = 0; i < Math.abs(height); i++) {
+                    aggregate.add(clickX + blockFace.getModX() * i * sign, clickY + blockFace.getModY() * i * sign, clickZ + blockFace.getModZ() * i * sign);
                 }
             }
 
@@ -249,8 +248,9 @@ public abstract class Selector {
                     }
                 }
 
-                for (int i = 0; i < height; i++) {
-                    aggregate.add(clickX + blockFace.getModX() * i, clickY + blockFace.getModY() * i, clickZ + blockFace.getModZ() * i);
+                final int sign = sign(height);
+                for (int i = 0; i < Math.abs(height); i++) {
+                    aggregate.add(clickX + blockFace.getModX() * i * sign, clickY + blockFace.getModY() * i * sign, clickZ + blockFace.getModZ() * i * sign);
                 }
             }
 
@@ -266,8 +266,9 @@ public abstract class Selector {
         return new Selector() {
             @Override
             public void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
-                for (int i = 0; i < height; i++) {
-                    aggregate.add(clickX, clickY + i, clickZ);
+                final int sign = sign(height);
+                for (int i = 0; i < Math.abs(height); i++) {
+                    aggregate.add(clickX, clickY + i * sign, clickZ);
                 }
             }
 
@@ -429,6 +430,10 @@ public abstract class Selector {
 
     private static Selector createChunkLayerSelector(int[] rawDimensions) {
         final int[] dimensions = getDimensions(rawDimensions, 1, 1);
+
+        final int yOff = dimensions[0] < 0 ? dimensions[0] : 0;
+        final int height = dimensions[0] < 0 ? 0 : dimensions[0];
+
         return new Selector() {
             @Override
             void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
@@ -436,8 +441,8 @@ public abstract class Selector {
                 final int chunkX = chunk.getX() * 16;
                 final int chunkZ = chunk.getZ() * 16;
 
-                for (int x = 0; x < 16; x++) {
-                    for (int y = clickY; y < clickY + dimensions[0]; y++) {
+                for (int y = clickY + yOff; y < clickY + height; y++) {
+                    for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
                             aggregate.add(chunkX + x, y, chunkZ + z);
                         }
