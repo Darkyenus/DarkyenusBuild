@@ -42,6 +42,7 @@ public abstract class Selector {
 
     abstract void sendInfoRaw(CommandSender sender);
 
+    @SuppressWarnings("SpellCheckingInspection")
     public static Selector createSelector(Tokenizer tokenizer) throws SyntaxException {
         if(!tokenizer.hasNext()) {
             throw new SyntaxException("Selector is missing");
@@ -71,6 +72,12 @@ public abstract class Selector {
             case "disk":
             case "disc":
                 selectorFunction = Selector::createDiskSelector;
+                break;
+            case "h-disk":
+            case "hdisk":
+            case "h-disc":
+            case "hdisc":
+                selectorFunction = Selector::createHorizontalDiskSelector;
                 break;
             case "column":
                 selectorFunction = Selector::createColumnSelector;
@@ -409,6 +416,30 @@ public abstract class Selector {
             @Override
             void sendInfoRaw(CommandSender sender) {
                 sender.sendMessage(ChatColor.BLUE + "   Target oriented disk with radius " + radius);
+            }
+        };
+    }
+
+    private static Selector createHorizontalDiskSelector (int[] rawDimensions) {
+        final int[] dimensions = getDimensions(rawDimensions, 1, 1);
+        final int radius = dimensions[0];
+        final int radius2 = radius * radius;
+
+        return new Selector() {
+            @Override
+            public void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
+                for (int aOff = -radius; aOff <= radius; aOff++) {
+                    for (int bOff = -radius; bOff <= radius; bOff++) {
+                        if (aOff * aOff + bOff * bOff <= radius2) {
+                            aggregate.add(clickX + aOff, clickY, clickZ + bOff);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            void sendInfoRaw(CommandSender sender) {
+                sender.sendMessage(ChatColor.BLUE + "   Horizontal (flat) disk with radius " + radius);
             }
         };
     }

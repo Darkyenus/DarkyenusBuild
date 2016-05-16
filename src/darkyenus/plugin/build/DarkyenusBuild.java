@@ -150,6 +150,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.UNDERLINE+"square"+ChatColor.RESET+" width/height"+ChatColor.AQUA+" like rectangle, with equal side sizes");
                 sender.sendMessage(ChatColor.UNDERLINE+"sphere"+ChatColor.RESET+" radius"+ChatColor.AQUA+" 3D sphere centered on cursor");
                 sender.sendMessage(ChatColor.UNDERLINE+"disc"+ChatColor.RESET+" radius"+ChatColor.AQUA+" 2D disc centered on cursor, oriented on target face");
+                sender.sendMessage(ChatColor.UNDERLINE+"h-disc"+ChatColor.RESET+" radius"+ChatColor.AQUA+" 2D disc centered on cursor, always horizontal (flat)");
                 sender.sendMessage(ChatColor.UNDERLINE+"column"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face (negative length supported)");
                 sender.sendMessage(ChatColor.UNDERLINE+"floor"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face but always horizontal (negative length supported)");
                 sender.sendMessage(ChatColor.UNDERLINE+"wall"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, always up (negative length supported)");
