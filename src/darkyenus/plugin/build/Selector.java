@@ -247,16 +247,16 @@ public abstract class Selector {
                     final int direction = (int) (((player.getLocation().getYaw() + 45) / 360f) * 4f) & 3;
                     switch (direction) {
                         case 0:
-                            blockFace = BlockFace.SOUTH;
-                            break;
-                        case 1:
-                            blockFace = BlockFace.WEST;
-                            break;
-                        case 2:
                             blockFace = BlockFace.NORTH;
                             break;
-                        case 3:
+                        case 1:
                             blockFace = BlockFace.EAST;
+                            break;
+                        case 2:
+                            blockFace = BlockFace.SOUTH;
+                            break;
+                        case 3:
+                            blockFace = BlockFace.WEST;
                             break;
                         default:
                             System.out.println("Failed to transform yaw to direction "+player.getLocation().getYaw());
