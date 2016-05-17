@@ -4,6 +4,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  *
  * @author Darkyen
@@ -73,7 +76,70 @@ public abstract class Filter {
         } else return createFilterAtom(tokenizer);
     }
 
+    private static final Pattern COORDINATE_MATCHER = Pattern.compile("^([xyz])(<|>|<=|>=|==|!=)(-?\\d+|sea)$");
+
     private static Filter createFilterAtom(Tokenizer tokenizer) {
+        if(tokenizer.hasNext()){
+            final String coordinateFilter = tokenizer.peek();
+            final Matcher matcher = COORDINATE_MATCHER.matcher(coordinateFilter);
+            if(matcher.matches()){
+                tokenizer.next();
+
+                final String left = matcher.group(1);
+                final String operator = matcher.group(2);
+                final String right = matcher.group(3);
+
+                return new Filter() {
+                    @Override
+                    protected String getInfoRaw() {
+                        return coordinateFilter;
+                    }
+
+                    @Override
+                    boolean passesFilter(Block block) {
+                        final int leftOperand;
+                        switch (left) {
+                            case "x":
+                                leftOperand = block.getX();
+                                break;
+                            case "y":
+                                leftOperand = block.getY();
+                                break;
+                            case "z":
+                                leftOperand = block.getZ();
+                                break;
+                            default:
+                                throw new IllegalStateException("Regex failed. Left operand is "+left+". I'm heading to Tibet.");
+                        }
+
+                        final int rightOperand;
+                        if(right.equalsIgnoreCase("sea")){
+                            rightOperand = block.getWorld().getSeaLevel();
+                        } else {
+                            rightOperand = Integer.parseInt(right);
+                        }
+
+                        switch (operator) {
+                            case "<":
+                                return leftOperand < rightOperand;
+                            case ">":
+                                return leftOperand > rightOperand;
+                            case "<=":
+                                return leftOperand <= rightOperand;
+                            case ">=":
+                                return leftOperand >= rightOperand;
+                            case "==":
+                                return leftOperand == rightOperand;
+                            case "!=":
+                                return leftOperand != rightOperand;
+                            default:
+                                throw new IllegalStateException("Regex failed. Operator is "+operator+".");
+                        }
+                    }
+                };
+            }
+        }
+
         final AttributeMatcher.Result result = AttributeMatcher.matchAttribute(tokenizer);
         switch (result.type) {
             case MATERIAL:
