@@ -228,6 +228,7 @@ public abstract class Filter {
         public abstract boolean result(boolean first, boolean second);
 
         public static LogicOperator matchLogicOperator(Tokenizer tokenizer) {
+            if(!tokenizer.hasNext()) return null;
             final String from = tokenizer.peek().toLowerCase();
             if (ParsingUtils.startsWith(from, "and", ",", "&&", "&")) {
                 tokenizer.next();
