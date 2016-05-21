@@ -76,67 +76,172 @@ public abstract class Filter {
         } else return createFilterAtom(tokenizer);
     }
 
-    private static final Pattern COORDINATE_MATCHER = Pattern.compile("^([xyz])(<|>|<=|>=|==|!=)(-?\\d+|sea)$");
+    private static final Pattern COORDINATE_MATCHER = Pattern.compile("^([xyz])(<|>|<=|>=|==|!=)(-?\\d+|sea|x|y|z)$");
 
     private static Filter createFilterAtom(Tokenizer tokenizer) {
         if(tokenizer.hasNext()){
-            final String coordinateFilter = tokenizer.peek();
-            final Matcher matcher = COORDINATE_MATCHER.matcher(coordinateFilter);
-            if(matcher.matches()){
-                tokenizer.next();
+            {//Coordinate filter
+                final String coordinateFilter = tokenizer.peek();
+                final Matcher matcher = COORDINATE_MATCHER.matcher(coordinateFilter);
+                if (matcher.matches()) {
+                    tokenizer.next();
 
-                final String left = matcher.group(1);
-                final String operator = matcher.group(2);
-                final String right = matcher.group(3);
+                    final String left = matcher.group(1);
+                    final String operator = matcher.group(2);
+                    final String right = matcher.group(3);
 
-                return new Filter() {
-                    @Override
-                    protected String getInfoRaw() {
-                        return coordinateFilter;
-                    }
-
-                    @Override
-                    boolean passesFilter(Block block) {
-                        final int leftOperand;
-                        switch (left) {
-                            case "x":
-                                leftOperand = block.getX();
-                                break;
-                            case "y":
-                                leftOperand = block.getY();
-                                break;
-                            case "z":
-                                leftOperand = block.getZ();
-                                break;
-                            default:
-                                throw new IllegalStateException("Regex failed. Left operand is "+left+". I'm heading to Tibet.");
+                    return new Filter() {
+                        @Override
+                        protected String getInfoRaw() {
+                            return coordinateFilter;
                         }
 
-                        final int rightOperand;
-                        if(right.equalsIgnoreCase("sea")){
-                            rightOperand = block.getWorld().getSeaLevel();
-                        } else {
-                            rightOperand = Integer.parseInt(right);
-                        }
+                        @Override
+                        boolean passesFilter(Block block) {
+                            final int leftOperand;
+                            switch (left) {
+                                case "x":
+                                    leftOperand = block.getX();
+                                    break;
+                                case "y":
+                                    leftOperand = block.getY();
+                                    break;
+                                case "z":
+                                    leftOperand = block.getZ();
+                                    break;
+                                default:
+                                    throw new IllegalStateException("Regex failed. Left operand is " + left + ". I'm heading to Tibet.");
+                            }
 
-                        switch (operator) {
-                            case "<":
-                                return leftOperand < rightOperand;
-                            case ">":
-                                return leftOperand > rightOperand;
-                            case "<=":
-                                return leftOperand <= rightOperand;
-                            case ">=":
-                                return leftOperand >= rightOperand;
-                            case "==":
-                                return leftOperand == rightOperand;
-                            case "!=":
-                                return leftOperand != rightOperand;
-                            default:
-                                throw new IllegalStateException("Regex failed. Operator is "+operator+".");
+                            final int rightOperand;
+                            switch (right.toLowerCase()) {
+                                case "sea":
+                                    rightOperand = block.getWorld().getSeaLevel();
+                                    break;
+                                case "x":
+                                    rightOperand = block.getX();
+                                    break;
+                                case "y":
+                                    rightOperand = block.getY();
+                                    break;
+                                case "z":
+                                    rightOperand = block.getZ();
+                                    break;
+                                default:
+                                    rightOperand = Integer.parseInt(right);
+                            }
+
+                            switch (operator) {
+                                case "<":
+                                    return leftOperand < rightOperand;
+                                case ">":
+                                    return leftOperand > rightOperand;
+                                case "<=":
+                                    return leftOperand <= rightOperand;
+                                case ">=":
+                                    return leftOperand >= rightOperand;
+                                case "==":
+                                    return leftOperand == rightOperand;
+                                case "!=":
+                                    return leftOperand != rightOperand;
+                                default:
+                                    throw new IllegalStateException("Regex failed. Operator is " + operator + ".");
+                            }
                         }
-                    }
-                };
+                    };
+                }
+            }
+
+            {//Block property filter
+                final String property = tokenizer.peek().toLowerCase();
+                switch (property) {
+                    case "collidable":
+                    case "solid":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "solid";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().isSolid();
+                            }
+                        };
+                    case "gravity":
+                    case "falls":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "has gravity";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().hasGravity();
+                            }
+                        };
+                    case "transparent":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "transparent (does not block light)";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().isTransparent();
+                            }
+                        };
+                    case "occluding":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "occluding (completely blocks vision)";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().isOccluding();
+                            }
+                        };
+                    case "burnable":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "burnable (can be destroyed by fire)";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().isBurnable();
+                            }
+                        };
+                    case "flammable":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "flammable (can catch fire)";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().isFlammable();
+                            }
+                        };
+                    case "edible":
+                        return new Filter() {
+                            @Override
+                            protected String getInfoRaw() {
+                                return "edible";
+                            }
+
+                            @Override
+                            boolean passesFilter(Block block) {
+                                return block.getType().isEdible();
+                            }
+                        };
+                }
             }
         }
 
