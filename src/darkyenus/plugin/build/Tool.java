@@ -42,6 +42,8 @@ public class Tool {
                 }
                 break;
                 case "where":
+                case "vvhere":
+                case "vhere":
                 {
                     activeActionPack.add(Filter.createFilterExpression(from));
                 }

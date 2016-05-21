@@ -86,6 +86,8 @@ public abstract class Selector {
                 selectorFunction = Selector::createFloorSelector;
                 break;
             case "wall":
+            case "vall":
+            case "vvall":
                 selectorFunction = Selector::createWallSelector;
                 break;
             case "chunk":
