@@ -157,6 +157,7 @@ public abstract class Filter {
                 switch (property) {
                     case "collidable":
                     case "solid":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
@@ -170,6 +171,7 @@ public abstract class Filter {
                         };
                     case "gravity":
                     case "falls":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
@@ -182,6 +184,7 @@ public abstract class Filter {
                             }
                         };
                     case "transparent":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
@@ -194,6 +197,7 @@ public abstract class Filter {
                             }
                         };
                     case "occluding":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
@@ -206,6 +210,7 @@ public abstract class Filter {
                             }
                         };
                     case "burnable":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
@@ -218,6 +223,7 @@ public abstract class Filter {
                             }
                         };
                     case "flammable":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
@@ -230,6 +236,7 @@ public abstract class Filter {
                             }
                         };
                     case "edible":
+                        tokenizer.next();
                         return new Filter() {
                             @Override
                             protected String getInfoRaw() {
