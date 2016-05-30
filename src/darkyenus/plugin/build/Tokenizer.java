@@ -13,7 +13,7 @@ public class Tokenizer {
     }
     
     public boolean hasNext(){
-        return position + 1<arguments.length;
+        return position + 1 < arguments.length;
     }
     
     public String peek(){
@@ -30,6 +30,14 @@ public class Tokenizer {
         }else{
             throw new IllegalStateException("Tokenizer does not have next!");
         }
+    }
+
+    public int mark(){
+        return position;
+    }
+
+    public void rollback(int mark){
+        this.position = mark;
     }
 
     public String serialize() {

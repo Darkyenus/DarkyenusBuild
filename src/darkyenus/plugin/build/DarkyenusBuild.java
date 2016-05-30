@@ -72,7 +72,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
 
                     if (inHand != null) {
                         try {
-                            final Tool newTool = Tool.createNewTool(new Tokenizer(args));
+                            final Tool newTool = Tool.createNewTool(sender, new Tokenizer(args));
                             player.getInventory().setItemInMainHand(newTool.createItem());
                             player.sendMessage(ChatColor.GREEN + "Tool modified!");
                             newTool.sendInfo(player);
@@ -82,7 +82,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                     } else {
                         if(player.getInventory().getItemInMainHand().getType() == Material.AIR) {
                             try {
-                                final Tool newTool = Tool.createNewTool(new Tokenizer(args));
+                                final Tool newTool = Tool.createNewTool(sender, new Tokenizer(args));
                                 final ItemStack toolItem = newTool.createItem();
                                 player.getInventory().setItem(player.getInventory().getHeldItemSlot(), toolItem);
                                 player.sendMessage(ChatColor.GREEN + "Tool created!");
@@ -211,7 +211,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                     return;
             }
 
-            tool = Tool.getTool(event.getItem());
+            tool = Tool.getTool(player, event.getItem());
             if(tool == null) return;
 
             settings = getSettings(player);
@@ -282,6 +282,6 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
     }
 
     public Tool getToolInHandOfPlayer(Player player) {
-        return Tool.getTool(player.getInventory().getItemInMainHand());
+        return Tool.getTool(player, player.getInventory().getItemInMainHand());
     }
 }

@@ -32,7 +32,7 @@ public final class Tool {
 
     private long lastClick = 0;
 
-    private Tool(int id, Tokenizer from) {
+    private Tool(int id, CommandSender creator, Tokenizer from) {
         this.id = id;
         if (!from.hasNext()) {
             throw new IllegalArgumentException("Specify arguments!");
@@ -48,7 +48,7 @@ public final class Tool {
             switch (token) {
                 case "in":
                 {
-                    activeActionPack.add(Selector.createSelector(from));
+                    activeActionPack.add(Selector.createSelector(creator, from));
                 }
                 break;
                 case "where":
@@ -127,15 +127,15 @@ public final class Tool {
     }
     private static final TIntObjectMap<Tool> loadedTools = new TIntObjectHashMap<>();
 
-    public static Tool createNewTool(Tokenizer from) throws SyntaxException {
+    public static Tool createNewTool(CommandSender creator, Tokenizer from) throws SyntaxException {
         final int id = nextToolID();
-        final Tool tool = new Tool(id, from);
+        final Tool tool = new Tool(id, creator, from);
         loadedTools.put(id, tool);
         return tool;
     }
 
     /** Retrieves created or dematerializes a tool associated with this item stack. */
-    public static Tool getTool(ItemStack item){
+    public static Tool getTool(CommandSender creator, ItemStack item){
         if(item == null)return null;
         if (item.getType() != BUILDING_ITEM_MATERIAL) return null;//Not a building tool, invalid material
         final ItemMeta itemMeta = item.getItemMeta();
@@ -167,7 +167,7 @@ public final class Tool {
         //This tool does not exist in this session yet, create it
         final Tool newTool;
         try {
-            newTool = new Tool(id, new Tokenizer(source.split(" ")));
+            newTool = new Tool(id, creator, new Tokenizer(source.split(" ")));
         } catch (SyntaxException e) {
             lore.add(e.getMessage());
             itemMeta.setLore(lore);

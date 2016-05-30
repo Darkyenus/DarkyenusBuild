@@ -19,13 +19,14 @@ import java.util.function.Function;
 public abstract class Selector {
 
     private final int[] offsets = new int[3];
+    private FaceModifier faceModifier = FaceModifier.NONE;
 
     private void setOffsets(int[] offsets) {
         System.arraycopy(offsets, 0, this.offsets, 0, 3);
     }
 
     public void getBlocks(Tool.BlockAggregate blockAggregate, Player player, Location click, BlockFace blockFace) {
-        getRawLocations(blockAggregate, player, click.getBlockX() + offsets[0], click.getBlockY() + offsets[1], click.getBlockZ() + offsets[2], blockFace);
+        getRawLocations(blockAggregate, player, click.getBlockX() + offsets[0], click.getBlockY() + offsets[1], click.getBlockZ() + offsets[2], faceModifier.modify(blockFace, player));
     }
 
     abstract void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace);
@@ -38,14 +39,30 @@ public abstract class Selector {
                 break;
             }
         }
+
+        if(faceModifier != FaceModifier.NONE){
+            sender.sendMessage(ChatColor.BLUE + "   Face modifier: " + ChatColor.WHITE + faceModifier.toString().toLowerCase());
+        }
     }
 
     abstract void sendInfoRaw(CommandSender sender);
 
     @SuppressWarnings("SpellCheckingInspection")
-    public static Selector createSelector(Tokenizer tokenizer) throws SyntaxException {
+    public static Selector createSelector(CommandSender sender, Tokenizer tokenizer) throws SyntaxException {
         if(!tokenizer.hasNext()) {
             throw new SyntaxException("Selector is missing");
+        }
+
+        FaceModifier explicitModifier = null;
+        FaceModifier implicitModifer = null;
+        {
+            final int mark = tokenizer.mark();
+            final FaceModifier newModifier = FaceModifier.match(tokenizer.next());
+            if(newModifier != null){
+                explicitModifier = newModifier;
+            }else{
+                tokenizer.rollback(mark);
+            }
         }
 
         final String selectorName = tokenizer.next().toLowerCase();
@@ -77,18 +94,21 @@ public abstract class Selector {
             case "hdisk":
             case "h-disc":
             case "hdisc":
-                selectorFunction = Selector::createHorizontalDiskSelector;
+                selectorFunction = Selector::createDiskSelector;
+                implicitModifer = FaceModifier.TOPS;
                 break;
             case "column":
                 selectorFunction = Selector::createColumnSelector;
                 break;
             case "floor":
-                selectorFunction = Selector::createFloorSelector;
+                selectorFunction = Selector::createColumnSelector;
+                implicitModifer = FaceModifier.SIDES;
                 break;
             case "wall":
             case "vall":
             case "vvall":
-                selectorFunction = Selector::createWallSelector;
+                selectorFunction = Selector::createColumnSelector;
+                implicitModifer = FaceModifier.UP;
                 break;
             case "chunk":
                 selectorFunction = Selector::createChunkSelector;
@@ -133,6 +153,18 @@ public abstract class Selector {
         final Selector selector = selectorFunction.apply(dimensions);
         if(offsets != null){
             selector.setOffsets(offsets);
+        }
+
+        if(implicitModifer != null){
+            if(explicitModifier != null){
+                sender.sendMessage(ChatColor.RED+"Warning:"+ChatColor.RESET+" "+selectorName+" has implicit face modifier "+implicitModifer+" - overriden with "+explicitModifier);
+            } else {
+                selector.faceModifier = implicitModifer;
+            }
+        }
+
+        if(explicitModifier != null){
+            selector.faceModifier = explicitModifier;
         }
 
         return selector;
@@ -236,63 +268,6 @@ public abstract class Selector {
             @Override
             void sendInfoRaw(CommandSender sender) {
                 sender.sendMessage(ChatColor.BLUE + "   Target-oriented column "+height+" long");
-            }
-        };
-    }
-
-    private static Selector createFloorSelector(int[] rawDimensions) {
-        final int height = getDimensions(rawDimensions, 1, 4)[0];
-        return new Selector() {
-            @Override
-            public void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
-                if(blockFace == BlockFace.DOWN || blockFace == BlockFace.UP){
-                    final int direction = (int) (((player.getLocation().getYaw() + 45) / 360f) * 4f) & 3;
-                    switch (direction) {
-                        case 0:
-                            blockFace = BlockFace.NORTH;
-                            break;
-                        case 1:
-                            blockFace = BlockFace.EAST;
-                            break;
-                        case 2:
-                            blockFace = BlockFace.SOUTH;
-                            break;
-                        case 3:
-                            blockFace = BlockFace.WEST;
-                            break;
-                        default:
-                            System.out.println("Failed to transform yaw to direction "+player.getLocation().getYaw());
-                            return;
-                    }
-                }
-
-                final int sign = sign(height);
-                for (int i = 0; i < Math.abs(height); i++) {
-                    aggregate.add(clickX + blockFace.getModX() * i * sign, clickY + blockFace.getModY() * i * sign, clickZ + blockFace.getModZ() * i * sign);
-                }
-            }
-
-            @Override
-            void sendInfoRaw(CommandSender sender) {
-                sender.sendMessage(ChatColor.BLUE + "   Horizontal Column (Floor) "+height+" long");
-            }
-        };
-    }
-
-    private static Selector createWallSelector(int[] rawDimensions) {
-        final int height = getDimensions(rawDimensions, 1, 4)[0];
-        return new Selector() {
-            @Override
-            public void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
-                final int sign = sign(height);
-                for (int i = 0; i < Math.abs(height); i++) {
-                    aggregate.add(clickX, clickY + i * sign, clickZ);
-                }
-            }
-
-            @Override
-            void sendInfoRaw(CommandSender sender) {
-                sender.sendMessage(ChatColor.BLUE + "   Vertical Column (Wall) "+height+" tall");
             }
         };
     }
@@ -422,30 +397,6 @@ public abstract class Selector {
         };
     }
 
-    private static Selector createHorizontalDiskSelector (int[] rawDimensions) {
-        final int[] dimensions = getDimensions(rawDimensions, 1, 1);
-        final int radius = dimensions[0];
-        final int radius2 = radius * radius;
-
-        return new Selector() {
-            @Override
-            public void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
-                for (int aOff = -radius; aOff <= radius; aOff++) {
-                    for (int bOff = -radius; bOff <= radius; bOff++) {
-                        if (aOff * aOff + bOff * bOff <= radius2) {
-                            aggregate.add(clickX + aOff, clickY, clickZ + bOff);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            void sendInfoRaw(CommandSender sender) {
-                sender.sendMessage(ChatColor.BLUE + "   Horizontal (flat) disk with radius " + radius);
-            }
-        };
-    }
-
     private static Selector createChunkSelector(int[] rawDimensions) {
         return new Selector() {
             @Override
@@ -509,5 +460,110 @@ public abstract class Selector {
             sb.append('x').append(dimensions[i]);
         }
         return sb;
+    }
+
+    @SuppressWarnings("unused")
+    public enum FaceModifier {
+        NONE() {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return clicked;
+            }
+        },
+        TOPS("horizontal","h","flat","tops") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                if(clicked != BlockFace.DOWN && clicked != BlockFace.UP){
+                    if (player.getLocation().getPitch() < 0) {
+                        return BlockFace.DOWN;
+                    } else {
+                        return BlockFace.UP;
+                    }
+                }
+                return clicked;
+            }
+        },
+        SIDES("vertical","v","side","sides") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                if(clicked == BlockFace.DOWN || clicked == BlockFace.UP){
+                    final int direction = (int) (((player.getLocation().getYaw() + 45) / 360f) * 4f) & 3;
+                    switch (direction) {
+                        case 0:
+                            return BlockFace.NORTH;
+                        case 1:
+                            return BlockFace.EAST;
+                        case 2:
+                            return BlockFace.SOUTH;
+                        case 3:
+                            return BlockFace.WEST;
+                        default:
+                            System.err.println("Failed to transform yaw to direction "+player.getLocation().getYaw());
+                    }
+                }
+                return clicked;
+            }
+        },
+        UP("up","top") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return BlockFace.UP;
+            }
+        },
+        DOWN("down","bottom") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return BlockFace.DOWN;
+            }
+        },
+        EAST("east") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return BlockFace.EAST;
+            }
+        },
+        WEST("west") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return BlockFace.WEST;
+            }
+        },
+        NORTH("north") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return BlockFace.NORTH;
+            }
+        },
+        SOUTH("south") {
+            @Override
+            BlockFace modify(BlockFace clicked, Player player) {
+                return BlockFace.SOUTH;
+            }
+        };
+
+        private final String[] names;
+
+        FaceModifier(String...names) {
+            this.names = names;
+        }
+
+        private boolean hasName(String lowerCase){
+            for (String name : names) {
+                if(name.equals(lowerCase))return true;
+            }
+            return false;
+        }
+
+        private static final FaceModifier[] VALUES = values();
+
+        public static FaceModifier match(String alias){
+            final String lowerCase = alias.toLowerCase();
+            for (FaceModifier value : VALUES) {
+                if(value.hasName(lowerCase))return value;
+            }
+            return null;
+        }
+
+        abstract BlockFace modify(BlockFace clicked, Player player);
     }
 }
