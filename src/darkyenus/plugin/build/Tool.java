@@ -1,16 +1,21 @@
 package darkyenus.plugin.build;
 
 import darkyenus.plugin.build.ParsingUtils.SyntaxException;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static darkyenus.plugin.build.ParsingUtils.StringContainer;
 import static darkyenus.plugin.build.ParsingUtils.startsWith;
@@ -19,15 +24,20 @@ import static darkyenus.plugin.build.ParsingUtils.startsWith;
  *
  * @author Darkyen
  */
-public class Tool {
+public final class Tool {
 
     private final ArrayList<ActionPack> actionPacks = new ArrayList<>();
-    private int id;
+    private final String source;
+    private final int id;
 
-    public Tool(Tokenizer from) {
+    private long lastClick = 0;
+
+    private Tool(int id, Tokenizer from) {
+        this.id = id;
         if (!from.hasNext()) {
             throw new IllegalArgumentException("Specify arguments!");
         }
+        source = from.serialize();
 
         ActionPack activeActionPack = new ActionPack();
 
@@ -104,26 +114,99 @@ public class Tool {
         //Done!
     }
 
+    public static final Material BUILDING_ITEM_MATERIAL = Material.GOLD_PICKAXE;
+    public static final String BUILDING_ITEM_NAME = ChatColor.GOLD+"Building Tool";
+
+    private static final Random random = new Random();
+    private static int nextToolID(){
+        int id;
+        do {
+            id = random.nextInt(0x10000000);
+        } while (loadedTools.containsKey(id));
+        return id;
+    }
+    private static final TIntObjectMap<Tool> loadedTools = new TIntObjectHashMap<>();
+
+    public static Tool createNewTool(Tokenizer from) throws SyntaxException {
+        final int id = nextToolID();
+        final Tool tool = new Tool(id, from);
+        loadedTools.put(id, tool);
+        return tool;
+    }
+
+    /** Retrieves created or dematerializes a tool associated with this item stack. */
+    public static Tool getTool(ItemStack item){
+        if(item == null)return null;
+        if (item.getType() != BUILDING_ITEM_MATERIAL) return null;//Not a building tool, invalid material
+        final ItemMeta itemMeta = item.getItemMeta();
+        if(!Objects.equals(itemMeta.getDisplayName(), BUILDING_ITEM_NAME)) return null;//Not a building tool, invalid name
+        if(!itemMeta.hasLore())return null;//Not a building tool, missing lore
+        final List<String> lore = itemMeta.getLore();
+        if(lore.size() < 2) return null;//Not a building tool, invalid lore size
+        int id;
+        try {
+            id = Integer.parseInt(lore.get(0), 16);
+        } catch (NumberFormatException e) {
+            return null;//Not a building tool, missing ID
+        }
+        final String source = lore.get(1);
+
+        final Tool existingTool = loadedTools.get(id);
+        if(existingTool != null) {
+            if(source.equals(existingTool.source)){
+                //Tool exists
+                return existingTool;
+            } else {
+                //This tool was created before and has the same ID as already created tool!
+                id = nextToolID();
+                lore.set(0, Integer.toString(id, 16));
+                itemMeta.setLore(lore);
+                item.setItemMeta(itemMeta);
+            }
+        }
+        //This tool does not exist in this session yet, create it
+        final Tool newTool;
+        try {
+            newTool = new Tool(id, new Tokenizer(source.split(" ")));
+        } catch (SyntaxException e) {
+            lore.add(e.getMessage());
+            itemMeta.setLore(lore);
+            item.setItemMeta(itemMeta);
+            return null;
+        } catch (Exception e) {
+            DarkyenusBuild.LOG.warning("Serialized build tool with source \""+source+"\" threw exception on deserialization");
+            DarkyenusBuild.LOG.throwing("Tool","getTool", e);
+            return null;
+        }
+        loadedTools.put(id, newTool);
+        return newTool;
+    }
+
+    public ItemStack createItem(){
+        final ItemStack stack = new ItemStack(BUILDING_ITEM_MATERIAL, 1);
+        final ItemMeta itemMeta = stack.getItemMeta();
+        itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS);
+        itemMeta.setDisplayName(BUILDING_ITEM_NAME);
+        itemMeta.setLore(Arrays.asList(Integer.toString(id, 16), source));
+        stack.setItemMeta(itemMeta);
+        return stack;
+    }
+
+    public boolean canProcessClickNow(long delay){
+        if(lastClick + delay < System.currentTimeMillis()){
+            lastClick = System.currentTimeMillis();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public Change processClick(Player player, BlockFace blockFace, Location at) {
         Change change = new Change(player.getWorld());
         for (ActionPack actionPack : actionPacks) {
             actionPack.processClick(player, blockFace, change, at);
         }
         return change;
-    }
-
-    /**
-     * @return the id
-     */
-    public int getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(int id) {
-        this.id = id;
     }
 
     public void sendInfo(CommandSender sender) {

@@ -31,4 +31,16 @@ public class Tokenizer {
             throw new IllegalStateException("Tokenizer does not have next!");
         }
     }
+
+    public String serialize() {
+        if(position + 1 >= arguments.length) return "";
+        if(position + 2 == arguments.length) return arguments[position+1];
+
+        final StringBuilder sb = new StringBuilder();
+        for (int i = position+1; i < arguments.length; i++) {
+            sb.append(arguments[i]).append(' ');
+        }
+        sb.setLength(sb.length()-1);
+        return sb.toString();
+    }
 }

@@ -9,6 +9,7 @@ public class PlayerSettings {
     private int range = 0;
     private boolean airBrush = false;
     private boolean verbose = true;
+    private int minDelayMS = 200;
 
     /**
      * @return the range
@@ -51,5 +52,13 @@ public class PlayerSettings {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
-    
+
+
+    public int getMinDelayMS() {
+        return minDelayMS;
+    }
+
+    public void setMinDelayMS(int minDelayMS) {
+        this.minDelayMS = minDelayMS;
+    }
 }
