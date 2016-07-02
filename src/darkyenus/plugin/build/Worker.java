@@ -1,12 +1,15 @@
 package darkyenus.plugin.build;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  *
@@ -86,6 +89,50 @@ public abstract class Worker {
                 sender.sendMessage(ChatColor.BLUE + "    Set biome to: " + ChatColor.WHITE + biome);
             }
         };
+    }
+
+    public static Worker createSpecialWorker(Tokenizer tokenizer) throws ParsingUtils.SyntaxException {
+        if(!tokenizer.hasNext()) throw new ParsingUtils.SyntaxException("Worker specifier missing after DO");
+        final String workerSpec = tokenizer.next();
+        switch (workerSpec.toLowerCase()){
+            case "regenerate":
+                return new Worker() {
+                    @Override
+                    void processBlocks(WorkerDelegate delegate) {
+                        final Set<Chunk> chunks = new HashSet<>();
+                        while(delegate.hasNext()){
+                            chunks.add(delegate.next().getChunk());
+                        }
+                        for(Chunk chunk:chunks){
+                            delegate.change.snapshotChunk(chunk);
+                            //Chunk regeneration may affect neighboring chunks as well, so we need to snapshot them
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX()+1, chunk.getZ()+1));
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX()+1, chunk.getZ()));
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX()+1, chunk.getZ()-1));
+
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ()+1));
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ()));
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ()-1));
+
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX()-1, chunk.getZ()+1));
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX()-1, chunk.getZ()));
+                            delegate.change.snapshotChunk(chunk.getWorld().getChunkAt(chunk.getX()-1, chunk.getZ()-1));
+                        }
+                        for (Chunk chunk : chunks) {
+                            chunk.getWorld().regenerateChunk(chunk.getX(), chunk.getZ());
+                        }
+                    }
+
+                    @Override
+                    public void sendInfo(CommandSender sender) {
+                        sender.sendMessage(ChatColor.BLUE + "    Regenerate whole chunk");
+                    }
+                };
+            case "erode":
+                throw new ParsingUtils.SyntaxException("Erode not yet implemented");
+            default:
+                throw new ParsingUtils.SyntaxException("Unrecognized worker "+workerSpec);
+        }
     }
 
     private static final class WorkerDelegate {

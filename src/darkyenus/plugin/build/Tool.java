@@ -66,9 +66,7 @@ public final class Tool {
                 break;
                 case "do":
                 {
-                    //TODO Custom workers
-                    //noinspection ConstantIfStatement,ConstantConditions
-                    if(true) throw new SyntaxException("Invalid keyword: do");
+                    activeActionPack.add(Worker.createSpecialWorker(from));
                 }
                 break;
                 case ";":

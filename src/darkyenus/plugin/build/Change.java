@@ -4,9 +4,7 @@ import java.util.*;
 
 import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -19,6 +17,7 @@ public class Change {
 
     private final Set<Location> changedBlockLocations = new HashSet<>();
     private final List<BlockSnapshot> before = new ArrayList<>();
+    private final List<ChunkSnapshot> beforeChunks = new ArrayList<>();
 
     private final World world;
     private final TLongObjectMap<Biome> originalBiomes = new TLongObjectHashMap<>();
@@ -51,23 +50,36 @@ public class Change {
     }
 
     public int revert(){
-        final int totalChanges = originalBiomes.size() + before.size();
+        final World world = this.world;
+        final int totalChanges = getSize();
 
         originalBiomes.forEachEntry((key, biome) -> {
             world.setBiome(biomeLocationKeyX(key), biomeLocationKeyZ(key), biome);
             return true;
         });
-        originalBiomes.clear();
 
         for(BlockSnapshot state:before) {
             state.revert();
+        }
+
+        for (ChunkSnapshot snapshot : beforeChunks) {
+            final int chunkX = snapshot.getX() << 4;
+            final int chunkZ = snapshot.getZ() << 4;
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    world.setBiome(chunkX + x, chunkZ + z, snapshot.getBiome(x,z));
+                    for (int y = 0; y < world.getMaxHeight(); y++) {
+                        world.getBlockAt(chunkX + x, y, chunkZ + z).setTypeIdAndData(snapshot.getBlockTypeId(x,y,z), (byte)snapshot.getBlockData(x,y,z), false);
+                    }
+                }
+            }
         }
 
         return totalChanges;
     }
     
     public int getSize(){
-        return before.size();
+        return before.size() + originalBiomes.size() + 16*16*world.getMaxHeight()*beforeChunks.size();
     }
     
     public void snapshotBlock(Block block){
@@ -75,6 +87,13 @@ public class Change {
             before.add(new BlockSnapshot(block));
             changedBlockLocations.add(block.getLocation());
         }
+    }
+
+    public void snapshotChunk(Chunk chunk) {
+        for (ChunkSnapshot snapshot : beforeChunks) {
+            if(snapshot.getX() == chunk.getX() && snapshot.getZ() == chunk.getZ()) return;
+        }
+        beforeChunks.add(chunk.getChunkSnapshot(false, true, false));
     }
     
     private class BlockSnapshot{
