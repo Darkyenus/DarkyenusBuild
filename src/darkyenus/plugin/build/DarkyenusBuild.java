@@ -146,7 +146,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.UNDERLINE+"column"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face (negative length supported)");
                 sender.sendMessage(ChatColor.UNDERLINE+"floor"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, oriented on target face but always horizontal (negative length supported)");
                 sender.sendMessage(ChatColor.UNDERLINE+"wall"+ChatColor.RESET+" length"+ChatColor.AQUA+" 1D column from cursor, always up (negative length supported)");
-                sender.sendMessage(ChatColor.UNDERLINE+"chunk"+ChatColor.AQUA+" whole chunk, from bottom to top of the world");
+                sender.sendMessage(ChatColor.UNDERLINE+"chunk"+ChatColor.RESET+" around"+ChatColor.AQUA+" whole chunk, from bottom to top of the world and [around] chunks around");
                 sender.sendMessage(ChatColor.UNDERLINE+"chunklayer"+ChatColor.RESET+" height"+ChatColor.AQUA+" slice of targeted chunk, from target up (negative length supported)");
                 break;
             case "workers":

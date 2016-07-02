@@ -206,6 +206,8 @@ public abstract class Selector {
                 dimIndex++;
                 dimSize = 0;
                 dimSizeChanged = false;
+            } else {
+                return null;
             }
         }
         if(dimSizeNegative){
@@ -398,17 +400,24 @@ public abstract class Selector {
     }
 
     private static Selector createChunkSelector(int[] rawDimensions) {
+        final int around = Math.min(getDimensions(rawDimensions, 1, 0)[0], 3);
+
         return new Selector() {
             @Override
             void getRawLocations(Tool.BlockAggregate aggregate, Player player, int clickX, int clickY, int clickZ, BlockFace blockFace) {
-                final Chunk chunk = player.getWorld().getChunkAt(clickX / 16, clickZ / 16);
-                final int chunkX = chunk.getX() * 16;
-                final int chunkZ = chunk.getZ() * 16;
+                final int chunkX = (clickX >> 4) << 4;
+                final int chunkZ = (clickZ >> 4) << 4;
 
-                for (int x = 0; x < 16; x++) {
-                    for (int y = 0; y < player.getWorld().getMaxHeight(); y++) {
-                        for (int z = 0; z < 16; z++) {
-                            aggregate.add(chunkX + x, y, chunkZ + z);
+                final int regionX = chunkX - (around << 4);
+                final int regionZ = chunkZ - (around << 4);
+
+                final int regionSizeXZ = 16 + (around << 4) * 2;
+                final int regionSizeY = player.getWorld().getMaxHeight();
+
+                for (int x = 0; x < regionSizeXZ; x++) {
+                    for (int y = 0; y < regionSizeY; y++) {
+                        for (int z = 0; z < regionSizeXZ; z++) {
+                            aggregate.add(regionX + x, y, regionZ + z);
                         }
                     }
                 }
@@ -416,7 +425,7 @@ public abstract class Selector {
 
             @Override
             void sendInfoRaw(CommandSender sender) {
-                sender.sendMessage(ChatColor.BLUE + "   Chunk");
+                sender.sendMessage(ChatColor.BLUE + "   Chunk (and "+ around +" around)");
             }
         };
     }
