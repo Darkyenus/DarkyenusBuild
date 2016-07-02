@@ -133,7 +133,7 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.AQUA+"/build in box 3x3x3 to cobblestone");
                 sender.sendMessage(ChatColor.BLUE+"- This command will create a tool that will build 3x3x3 cobblestone boxes where you tell it to. Left click to build, right click to undo.");
                 sender.sendMessage(ChatColor.BLUE+"- For more shapes, see /dbld selectors");
-                sender.sendMessage(ChatColor.BLUE+"- For more actions, see /dbld workers");
+                sender.sendMessage(ChatColor.BLUE+"- For more actions, see /dbld workers and /dbld do-workers");
                 sender.sendMessage(ChatColor.BLUE+"- For more advanced tools, see /dbld spec");
                 break;
             case "selectors":
@@ -154,11 +154,17 @@ public class DarkyenusBuild extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.BLUE+"Basic workers modify blocks to specified material or biome. Optional \"block\" or \"biome\" (space separated) may be specified before the name to resolve ambiguity. By default, only blocks are selected.");
                 sender.sendMessage(ChatColor.BLUE+"Materials may have ':DATA' appended to also modify data. For example \"wool:11\" for blue wool.");
                 sender.sendMessage(ChatColor.BLUE+"When modifying biomes, note that the change will be visible only after chunk reload.");
+                sender.sendMessage(ChatColor.BLUE+"See [do-workers] for specialized workers");
+                break;
+            case "do-workers":
+                sender.sendMessage(ChatColor.AQUA+"Specialized worker: do <something - see below>");
+                sender.sendMessage(ChatColor.BLUE+"regenerate"+ChatColor.ITALIC+" regenerates selected chunks using the default generator");
+                sender.sendMessage(ChatColor.BLUE+"See [workers] for basic workers");
                 break;
             case "specification":
             case "spec":
                 sender.sendMessage(ChatColor.AQUA+"/build <action packs>");
-                sender.sendMessage(ChatColor.AQUA+"<action pack> = IN [selector]+ WHERE [filter]+ SET [worker]+");
+                sender.sendMessage(ChatColor.AQUA+"<action pack> = IN [selector]+ WHERE [filter]+ SET [worker]+ DO [do-worker]+");
                 sender.sendMessage(ChatColor.BLUE+"A tool may have one or more action packs, which is a union of all selectors, filtered by specified filters and acted on by workers. Action pack elements may be specified in any order. Action packs themselves are separated by a ; (which must have spaces on both sides). Each selector must be prefixed with IN, each filter with WHERE and each (basic) worker with SET or TO.");
                 sender.sendMessage(ChatColor.BLUE+"See [commands]");
                 break;
