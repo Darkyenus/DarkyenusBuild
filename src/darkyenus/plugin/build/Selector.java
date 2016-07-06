@@ -128,7 +128,7 @@ public abstract class Selector {
             dimensions = getDimensions(maybeDimensions);
         }
 
-        if(dimensions != null){
+        if(dimensions.length != 0){
             tokenizer.next();//Take peeked dimensions
 
             String maybeOffsets = tokenizer.peek();
@@ -172,6 +172,8 @@ public abstract class Selector {
 
     //<editor-fold defaultstate="collapsed" desc="Utility Methods">
 
+    private static final int[] NO_DIMENSIONS = new int[0];
+
     private static int[] getDimensions(String text) {
         int dimensionCount = 1;
         for (int i = 0; i < text.length(); i++) {
@@ -191,7 +193,7 @@ public abstract class Selector {
                     dimSizeNegative = true;
                     dimSizeChanged = true;
                 } else {
-                    return null;
+                    return NO_DIMENSIONS;
                 }
             } else if(c >= '0' && c <= '9'){
                 dimSize *= 10;
@@ -207,7 +209,7 @@ public abstract class Selector {
                 dimSize = 0;
                 dimSizeChanged = false;
             } else {
-                return null;
+                return NO_DIMENSIONS;
             }
         }
         if(dimSizeNegative){
