@@ -1,6 +1,5 @@
-package darkyenus.plugin.build;
+package darkyenusbuild;
 
-import darkyenus.plugin.build.ParsingUtils.SyntaxException;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -48,9 +47,9 @@ public abstract class Selector {
     abstract void sendInfoRaw(CommandSender sender);
 
     @SuppressWarnings("SpellCheckingInspection")
-    public static Selector createSelector(CommandSender sender, Tokenizer tokenizer) throws SyntaxException {
+    public static Selector createSelector(CommandSender sender, Tokenizer tokenizer) throws ParsingUtils.SyntaxException {
         if(!tokenizer.hasNext()) {
-            throw new SyntaxException("Selector is missing");
+            throw new ParsingUtils.SyntaxException("Selector is missing");
         }
 
         FaceModifier explicitModifier = null;
@@ -117,7 +116,7 @@ public abstract class Selector {
                 selectorFunction = Selector::createChunkLayerSelector;
                 break;
             default:
-                throw new SyntaxException("Unrecognized selector "+selectorName);
+                throw new ParsingUtils.SyntaxException("Unrecognized selector "+selectorName);
         }
 
         final int[] dimensions;

@@ -1,4 +1,4 @@
-package darkyenus.plugin.build;
+package darkyenusbuild;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;

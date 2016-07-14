@@ -1,4 +1,4 @@
-package darkyenus.plugin.build;
+package darkyenusbuild;
 
 import java.util.ArrayList;
 import java.util.Iterator;

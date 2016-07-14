@@ -1,6 +1,6 @@
 name: DarkyenusBuild
 version: 1.4-SNAPSHOT
-main: darkyenus.plugin.build.DarkyenusBuild
+main: darkyenusbuild.DarkyenusBuild
 authors: [Darkyen]
 commands:
   build:

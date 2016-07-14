@@ -1,4 +1,4 @@
-package darkyenus.plugin.build;
+package darkyenusbuild;
 
 /**
  *

@@ -1,6 +1,5 @@
-package darkyenus.plugin.build;
+package darkyenusbuild;
 
-import darkyenus.plugin.build.ParsingUtils.SyntaxException;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import org.bukkit.ChatColor;
@@ -17,8 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
-import static darkyenus.plugin.build.ParsingUtils.StringContainer;
-import static darkyenus.plugin.build.ParsingUtils.startsWith;
+import static darkyenusbuild.ParsingUtils.startsWith;
 
 /**
  *
@@ -76,7 +74,7 @@ public final class Tool {
                         actionPacks.add(activeActionPack);
                         activeActionPack = new ActionPack();
                     } else {
-                        throw new SyntaxException("Action pack "+(actionPacks.size()+1)+" is incomplete");
+                        throw new ParsingUtils.SyntaxException("Action pack "+(actionPacks.size()+1)+" is incomplete");
                     }
                 }
                 break;
@@ -85,8 +83,8 @@ public final class Tool {
                     //Custom flag
                     boolean flagEnabled = true;
                     String flag = token;
-                    final StringContainer restOfFlag = new StringContainer();
-                    if(startsWith(flag, restOfFlag, "-", "no", "!")){
+                    final ParsingUtils.StringContainer restOfFlag = new ParsingUtils.StringContainer();
+                    if(ParsingUtils.startsWith(flag, restOfFlag, "-", "no", "!")){
                         flagEnabled = false;
                         flag = restOfFlag.string;
                     }
@@ -94,7 +92,7 @@ public final class Tool {
                     if (flag.startsWith("phys")) {
                         activeActionPack.setPhysicsFlag(flagEnabled);
                     } else {
-                        throw new SyntaxException("Building block \"" + token + "\" not recognized.\n" +
+                        throw new ParsingUtils.SyntaxException("Building block \"" + token + "\" not recognized.\n" +
                                 "Expected: IN, WHERE, SET, DO, AND or a flag");
                     }
                 }
@@ -107,7 +105,7 @@ public final class Tool {
         }
 
         if(actionPacks.size() == 0){
-            throw new SyntaxException("Missing any actions");
+            throw new ParsingUtils.SyntaxException("Missing any actions");
         }
         //Done!
     }
@@ -125,7 +123,7 @@ public final class Tool {
     }
     private static final TIntObjectMap<Tool> loadedTools = new TIntObjectHashMap<>();
 
-    public static Tool createNewTool(CommandSender creator, Tokenizer from) throws SyntaxException {
+    public static Tool createNewTool(CommandSender creator, Tokenizer from) throws ParsingUtils.SyntaxException {
         final int id = nextToolID();
         final Tool tool = new Tool(id, creator, from);
         loadedTools.put(id, tool);
@@ -166,7 +164,7 @@ public final class Tool {
         final Tool newTool;
         try {
             newTool = new Tool(id, creator, new Tokenizer(source.split(" ")));
-        } catch (SyntaxException e) {
+        } catch (ParsingUtils.SyntaxException e) {
             lore.add(e.getMessage());
             itemMeta.setLore(lore);
             item.setItemMeta(itemMeta);

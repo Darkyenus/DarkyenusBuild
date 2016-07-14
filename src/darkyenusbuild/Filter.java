@@ -1,4 +1,4 @@
-package darkyenus.plugin.build;
+package darkyenusbuild;
 
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
