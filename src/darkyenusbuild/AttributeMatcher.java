@@ -3,9 +3,6 @@ package darkyenusbuild;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  *
  */
@@ -31,55 +28,32 @@ public final class AttributeMatcher {
                 break;
         }
 
-        final List<Material> matchingMaterials;
-        final String blockData;
-        final List<Biome> matchingBiomes;
-
+        final MatchUtils.MaterialSpec materialMatch;
+        final MatchUtils.StringBuilderCommandSender materialMatchError = new MatchUtils.StringBuilderCommandSender();
+        final MatchUtils.MatchResult<Biome> biomeMatch;
         {//Matching
-            final int dataSplit = parameter.indexOf(':');
-            if(dataSplit == -1){
-                matchingMaterials = EnumMatcher.match(Material.class, parameter);
-                blockData = "";
-            } else {
-                matchingMaterials = EnumMatcher.match(Material.class, parameter.substring(0, dataSplit));
-                blockData = parameter.substring(dataSplit + 1);
-            }
-            matchingBiomes = EnumMatcher.match(Biome.class, parameter);
+            materialMatch = MatchUtils.matchMaterialData(parameter, materialMatchError);
+            biomeMatch = MatchUtils.match(Biome.class, parameter);
         }
 
         //Resolution
-        if(!blockTool){
-            if(matchingBiomes.size() == 1){
-                return new Result(ResultType.BIOME, null, 0, matchingBiomes.get(0), null);
-            } else if(matchingBiomes.size() == 0){
-                if(matchingMaterials.size() != 0){
-                    return new Result("Could not match biome named \""+parameter+"\", did you mean material "+String.join(" or ", matchingMaterials.stream().map(Object::toString).collect(Collectors.toList()))+"?");
+        if (blockTool) {
+            if (materialMatch != null) {
+                if(materialMatch.hasData) {
+                    return new Result(ResultType.MATERIAL_WITH_DATA, materialMatch.material, materialMatch.data, null, null);
                 } else {
-                    return new Result("Could not match any biome named \""+parameter+"\"");
+                    return new Result(ResultType.MATERIAL, materialMatch.material, 0, null, null);
                 }
             } else {
-                return new Result("Could not match single biome named \""+parameter+"\", did you mean "+String.join(" or ", matchingBiomes.stream().map(Object::toString).collect(Collectors.toList()))+"?");
+                return new Result(materialMatchError.sb.toString());
             }
         } else {
-            if(matchingMaterials.size() == 1){
-                if(blockData.isEmpty()){
-                    return new Result(ResultType.MATERIAL, matchingMaterials.get(0), 0, null, null);
-                } else {
-                    try {
-                        final int dataInt = Integer.parseInt(blockData);
-                        return new Result(ResultType.MATERIAL_WITH_DATA, matchingMaterials.get(0), dataInt, null, null);
-                    } catch (NumberFormatException e) {
-                        return new Result("Unrecognized data number \""+blockData+"\"");
-                    }
-                }
-            } else if(matchingMaterials.size() == 0){
-                if(matchingBiomes.size() != 0){
-                    return new Result("Could not match material named \""+parameter+"\", did you mean biome "+String.join(" or ", matchingBiomes.stream().map(Object::toString).collect(Collectors.toList()))+"?");
-                } else {
-                    throw new ParsingUtils.SyntaxException("Could not match any material named \""+parameter+"\"");
-                }
+            if (biomeMatch.isDefinite) {
+                return new Result(ResultType.BIOME, null, 0, biomeMatch.result(), null);
             } else {
-                throw new ParsingUtils.SyntaxException("Could not match single material named \""+parameter+"\", did you mean "+String.join(" or ", matchingMaterials.stream().map(Object::toString).collect(Collectors.toList()))+"?");
+                final MatchUtils.StringBuilderCommandSender cs = new MatchUtils.StringBuilderCommandSender();
+                MatchUtils.matchFail("Biome", biomeMatch, cs);
+                return new Result(cs.sb.toString());
             }
         }
     }
