@@ -9,13 +9,14 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
 
 /**
  *
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "unused"})
 public class MatchUtils {
 
     /** @param s0 text user entered
@@ -140,7 +141,7 @@ public class MatchUtils {
 
             final int resultItems = Math.min(8, results.size());
             //noinspection unchecked
-            final T[] resultArray = (T[]) new Object[resultItems];
+            final T[] resultArray = (T[]) Array.newInstance(from.getClass().getComponentType(), resultItems);
             for (int i = 0; i < resultItems; i++) {
                 resultArray[i] = from[results.get(i).index];
             }
@@ -166,17 +167,24 @@ public class MatchUtils {
         if(result.results.length == 0){
             sender.sendMessage(ChatColor.RED+"Player not found");
         } else if(result.results.length == 1){
-            sender.sendMessage(ChatColor.RED+"Player not found. "+ ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0].getName() + ChatColor.DARK_RED + " ?");
+            sender.sendMessage(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0].getName() + ChatColor.DARK_RED + " ?");
         } else {
-            final StringBuilder sb = new StringBuilder(ChatColor.RED+"Player not found. "+ ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
-            sb.append(result.results[0]);
-            for (int i = 1; i < result.results.length; i++) {
-                //noinspection StringConcatenationInsideStringBufferAppend
-                sb.append(ChatColor.DARK_RED + ", " + ChatColor.RESET);//Like in constructor, will be concatenated at compile time
-                sb.append(result.results[i].getName());
+            //Will be concatenated at compile time
+            final StringBuilder sb = new StringBuilder(ChatColor.RED+"Player not found. "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
+            for (int i = 0; i < result.results.length; i++) {
+                if(i != 0) {
+                    sb.append(ChatColor.DARK_RED);
+                    sb.append(i + 1 == result.results.length ? " or " : ", ");
+                    sb.append(ChatColor.RESET);
+                }
+                final OfflinePlayer player = result.results[i];
+                if(player.isOnline()) {
+                    sb.append(ChatColor.DARK_GREEN);
+                }
+                sb.append(player.getName());
             }
             //noinspection StringConcatenationInsideStringBufferAppend
-            sb.append(ChatColor.DARK_RED + " ?");
+            sb.append(ChatColor.DARK_RED + "?");
             sender.sendMessage(sb.toString());
         }
     }
@@ -186,17 +194,19 @@ public class MatchUtils {
         if(result.results.length == 0){
             sender.sendMessage(ChatColor.RED+noun+" not found");
         } else if(result.results.length == 1){
-            sender.sendMessage(ChatColor.RED+noun+" not found "+ ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0] + ChatColor.DARK_RED + " ?");
+            sender.sendMessage(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET + result.results[0] + ChatColor.DARK_RED + " ?");
         } else {
-            final StringBuilder sb = new StringBuilder(ChatColor.RED+noun+" not found "+ ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
-            sb.append(result.results[0]);
-            for (int i = 1; i < result.results.length; i++) {
-                //noinspection StringConcatenationInsideStringBufferAppend
-                sb.append(ChatColor.DARK_RED + ", " + ChatColor.RESET);//Like in constructor, will be concatenated at compile time
+            final StringBuilder sb = new StringBuilder(ChatColor.RED+noun+" not found "+ChatColor.DARK_RED+"Did you mean: " + ChatColor.RESET);
+            for (int i = 0; i < result.results.length; i++) {
+                if(i != 0) {
+                    sb.append(ChatColor.DARK_RED);
+                    sb.append(i + 1 == result.results.length ? " or " : ", ");
+                    sb.append(ChatColor.RESET);
+                }
                 sb.append(result.results[i]);
             }
             //noinspection StringConcatenationInsideStringBufferAppend
-            sb.append(ChatColor.DARK_RED + " ?");
+            sb.append(ChatColor.DARK_RED + "?");
             sender.sendMessage(sb.toString());
         }
     }
@@ -401,7 +411,8 @@ public class MatchUtils {
         public MatchResult(T result) {
             this.isDefinite = true;
             //noinspection unchecked
-            this.results = (T[])new Object[]{result};
+            this.results = (T[])Array.newInstance(result.getClass().getComponentType(), 1);
+            this.results[0] = result;
         }
 
         public T result() {
