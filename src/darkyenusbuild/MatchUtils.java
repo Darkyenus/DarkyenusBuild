@@ -411,7 +411,7 @@ public class MatchUtils {
         public MatchResult(T result) {
             this.isDefinite = true;
             //noinspection unchecked
-            this.results = (T[])Array.newInstance(result.getClass().getComponentType(), 1);
+            this.results = (T[])Array.newInstance(result.getClass(), 1);
             this.results[0] = result;
         }
 
