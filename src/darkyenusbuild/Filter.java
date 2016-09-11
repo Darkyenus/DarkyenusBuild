@@ -250,6 +250,43 @@ public abstract class Filter {
                         };
                 }
             }
+
+            {// Material name matching
+                final String source = tokenizer.peek();
+                if(source.indexOf('*') != -1) {
+                    tokenizer.next();
+                    //Create regex
+                    final StringBuilder sb = new StringBuilder();
+                    final StringBuilder sbSource = new StringBuilder("matching ");
+                    sb.append("^");
+                    for (int i = 0; i < source.length(); i++) {
+                        final char c = source.charAt(i);
+                        if(c == '*') {
+                            sb.append("\\w*");
+                            sbSource.append('*');
+                        } else if (Character.isJavaIdentifierPart(c)) {
+                            sb.append(Character.toUpperCase(c));
+                            sbSource.append(c);
+                        }
+                    }
+                    sb.append("$");
+
+                    final String infoString = sbSource.toString();
+                    final Pattern regexPattern = Pattern.compile(sb.toString());
+
+                    return new Filter() {
+                        @Override
+                        protected String getInfoRaw() {
+                            return infoString;
+                        }
+
+                        @Override
+                        boolean passesFilter(Block block) {
+                            return regexPattern.matcher(block.getType().toString()).matches();
+                        }
+                    };
+                }
+            }
         }
 
         final AttributeMatcher.Result result = AttributeMatcher.matchAttribute(tokenizer);
