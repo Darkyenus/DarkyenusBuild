@@ -46,7 +46,12 @@ public abstract class Worker {
             @Override
             public void processBlocks(WorkerDelegate delegate) {
                 while (delegate.hasNext()) {
-                    delegate.changeMaterial(delegate.next(), material);
+                    final Block next = delegate.next();
+                    if (next.getType().getData().equals(material.getData())) {
+                        delegate.changeMaterial(next, material, next.getState().getRawData());
+                    } else {
+                        delegate.changeMaterial(next, material);
+                    }
                 }
             }
 
