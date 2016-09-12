@@ -315,6 +315,13 @@ public class MatchUtils {
             }
         }
 
+        //Maybe special value: inherit?
+        {
+            if(data.equals("?")) {
+                return new MaterialSpec(mat, MaterialSpec.DATA_INHERIT);
+            }
+        }
+
         if(sender != null) {
             sender.sendMessage(ChatColor.RED+"Failed to match data, try some number, color, wood or stone type");
         }
@@ -428,7 +435,7 @@ public class MatchUtils {
         public MaterialSpec(Material material, int data) {
             this.material = material;
             this.data = data;
-            this.hasData = true;
+            this.hasData = data != DATA_INHERIT;
         }
 
         public MaterialSpec(Material material) {
@@ -453,6 +460,8 @@ public class MatchUtils {
                 return material.toString();
             }
         }
+
+        public static final int DATA_INHERIT = Integer.MAX_VALUE;
     }
 
     @SuppressWarnings("unused")

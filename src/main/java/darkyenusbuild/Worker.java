@@ -29,7 +29,11 @@ public abstract class Worker {
         final AttributeMatcher.Result result = AttributeMatcher.matchAttribute(tokenizer);
         switch (result.type) {
             case MATERIAL:
-                return createBlockWorker(result.material);
+                if(result.data == MatchUtils.MaterialSpec.DATA_INHERIT) {
+                    return createBlockWorkerWithForceInheritedData(result.material);
+                } else {
+                    return createBlockWorker(result.material);
+                }
             case MATERIAL_WITH_DATA:
                 return createBlockWorker(result.material, result.data);
             case BIOME:
@@ -58,6 +62,7 @@ public abstract class Worker {
             @Override
             public void sendInfo(CommandSender sender) {
                 sender.sendMessage(ChatColor.BLUE + "    Set material to: " + ChatColor.WHITE + material);
+                sender.sendMessage(ChatColor.BLUE + "    Set data to: " + ChatColor.WHITE + "default");
             }
         };
     }
@@ -76,6 +81,24 @@ public abstract class Worker {
             public void sendInfo(CommandSender sender) {
                 sender.sendMessage(ChatColor.BLUE + "    Set material to: " + ChatColor.WHITE + material);
                 sender.sendMessage(ChatColor.BLUE + "    Set data to: " + ChatColor.WHITE + data);
+            }
+        };
+    }
+
+    private static Worker createBlockWorkerWithForceInheritedData(Material material) {
+        return new Worker() {
+            @Override
+            public void processBlocks(WorkerDelegate delegate) {
+                while (delegate.hasNext()) {
+                    final Block next = delegate.next();
+                    delegate.changeMaterial(next, material, next.getData());
+                }
+            }
+
+            @Override
+            public void sendInfo(CommandSender sender) {
+                sender.sendMessage(ChatColor.BLUE + "    Set material to: " + ChatColor.WHITE + material);
+                sender.sendMessage(ChatColor.BLUE + "    Don't change data");
             }
         };
     }

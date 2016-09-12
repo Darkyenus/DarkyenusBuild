@@ -42,7 +42,7 @@ public final class AttributeMatcher {
                 if(materialMatch.hasData) {
                     return new Result(ResultType.MATERIAL_WITH_DATA, materialMatch.material, materialMatch.data, null, null);
                 } else {
-                    return new Result(ResultType.MATERIAL, materialMatch.material, 0, null, null);
+                    return new Result(ResultType.MATERIAL, materialMatch.material, materialMatch.data, null, null);
                 }
             } else {
                 return new Result(materialMatchError.sb.toString());
