@@ -11,3 +11,5 @@ libraryDependencies += ("org.spigotmc" % "spigot-api" % "1.10.2-R0.1-SNAPSHOT" %
 libraryDependencies += "net.sf.trove4j" % "trove4j" % "3.0.3"
 
 autoScalaLibrary := false
+
+crossPaths := false
